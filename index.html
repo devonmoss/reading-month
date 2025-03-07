@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<link href="https://db.onlinewebfonts.com/c/181ef9a7aee45c119e68f294e8426a3a?family=Harry+P" rel="stylesheet" type="text/css"/>
+	<title>JHCS Reading Month</title>
+	<!-- Load Chart.js from CDN -->
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<style>
+		/* Use a parchment-like background */
+		body {
+			margin: 0;
+			padding: 20px;
+			font-family: "Harry P";
+			background: url('background.webp') no-repeat center center fixed;
+			background-size: cover;
+			color: #fdf6e3;
+		}
+
+		h1 {
+			text-align: center;
+			font-size: 4.2em;
+			color: #fdf6e3;
+			margin-bottom: 20px;
+			text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+		}
+
+		#chartContainer {
+			width: 95%;
+			max-width: 2000px;
+			margin: 0 auto 20px auto;
+			padding: 20px;
+			background: rgba(253, 246, 227, 0.9);
+			border: 2px solid #2A623D;
+			border-radius: 8px;
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+			position: relative;
+		}
+
+		canvas {
+			width: 100% !important;
+			height: auto !important;
+			max-height: 80vh;
+		}
+
+		footer {
+			text-align: center;
+			margin-top: 20px;
+			font-size: 0.9em;
+			color: #fdf6e3;
+		}
+	</style>
+	<script>
+		// URL for your JSON endpoint from Apps Script
+		const endpoint = 'https://script.googleusercontent.com/macros/echo?user_content_key=2mlAflHrbgWV50F5Zqj14ldzx6-SCl6v69qkYn51gstQDDkWSthQVlNz2m3Ngu3pPLZXBzDq0qdH0NxvTRbulWRTTTBwj5M_m5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnFsX3H7LbYnWpXz_rfG2QgPCAMNGE9E-KvQNcrO_MrlyAJZOqmuo1w69dCswQJa2ZLHH6-p2pdS9SLXp7v5aJaCJFysSRz0Xc9z9Jw9Md8uu&lib=MgWnaGjXI9WvTLUmgLV5xdLn1vlK1hQ5I';
+
+		// House colors mapping (using one from your palette)
+		const houseColors = {
+			"Ravenclaw": "#5B92E5",
+			"Gryffindor": "#AE0001",
+			"Hufflepuff": "#FFD700",
+			"Slytherin": "#2A623D"
+		};
+
+		var chart; // global chart instance
+
+		// Add this before the chart creation
+		const bgPlugin = {
+			id: 'customCanvasBackgroundColor',
+			beforeDraw: (chart, args, options) => {
+				const {ctx} = chart;
+				ctx.save();
+				ctx.globalCompositeOperation = 'destination-over';
+				ctx.fillStyle = 'rgba(253, 246, 227, 0)'; // Set opacity to 0 for full transparency
+				ctx.fillRect(0, 0, chart.width, chart.height);
+				ctx.restore();
+			}
+		};
+
+		function updateChartData(data) {
+			if (!chart) {
+				const ctx = document.getElementById('myChart').getContext('2d');
+				const labels = data.houses.map(h => h.name);
+				const totals = data.houses.map(h => h.total);
+				const colors = labels.map(name => houseColors[name] || '#000000');
+
+				chart = new Chart(ctx, {
+					type: 'bar',
+					data: {
+						labels: labels,
+						datasets: [{
+							label: 'Minutes Read',
+							data: totals,
+							backgroundColor: colors,
+							borderWidth: 0,
+							borderColor: 'transparent'
+						}]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: true,
+						aspectRatio: 2.5,
+						scales: {
+							y: {
+								beginAtZero: true,
+								ticks: {
+									color: "#3e3e3e",
+									font: {
+										family: "Harry P",
+										size: 28
+									}
+								},
+								grid: {
+									color: 'rgba(62, 62, 62, 0.1)'
+								}
+							},
+							x: {
+								ticks: {
+									color: "#3e3e3e",
+									font: {
+										family: "Harry P",
+										size: 28
+									}
+								},
+								grid: {
+									display: false
+								}
+							}
+						},
+						plugins: {
+							legend: {
+								display: false
+							},
+							tooltip: {
+								backgroundColor: '#fdf6e3',
+								titleColor: '#3e3e3e',
+								bodyColor: '#3e3e3e',
+								titleFont: {
+									family: 'Harry P',
+									size: 24
+								},
+								bodyFont: {
+									family: 'Harry P',
+									size: 24
+								},
+								padding: 12,
+								borderWidth: 2,
+								borderColor: '#2A623D',
+								callbacks: {
+									title: () => '',
+									label: (context) => {
+										const value = context.raw;
+										return `${Math.round(value)} minutes`;
+									}
+								}
+							},
+							title: {
+								display: true,
+								text: 'House Reading Totals',
+								color: "#3e3e3e",
+								font: {
+									size: 32,
+									family: "Harry P"
+								}
+							}
+						}
+					},
+					plugins: [bgPlugin]
+				});
+			} else {
+				chart.data.datasets[0].data = data.houses.map(h => h.total);
+				chart.update();
+			}
+		}
+
+		function updateChart() {
+			fetch(endpoint)
+				.then(response => response.json())
+				.then(data => updateChartData(data))
+				.catch(error => console.error('Error fetching data:', error));
+		}
+
+		window.onload = function () {
+			updateChart();
+			setInterval(updateChart, 60000);
+		};
+	</script>
+</head>
+
+<body>
+	<h1>JHCS Reading Month </h1>
+	<div id="chartContainer">
+		<canvas id="myChart" width="800" height="400"></canvas>
+	</div>
+	<footer>&copy; 2025 Nagini</footer>
+</body>
+
+</html>
