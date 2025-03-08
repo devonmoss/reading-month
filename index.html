@@ -101,6 +101,26 @@
 						responsive: true,
 						maintainAspectRatio: true,
 						aspectRatio: 2.5,
+						animation: {
+							duration: 0  // Disable all chart animations
+						},
+						hover: {
+							animationDuration: 0  // Disable hover animations
+						},
+						responsiveAnimationDuration: 0,  // Disable responsive animations
+						elements: {
+							bar: {
+								borderWidth: 0
+							}
+						},
+						layout: {
+							padding: {
+								left: 10,
+								right: 10,
+								top: 10,
+								bottom: 10
+							}
+						},
 						scales: {
 							y: {
 								beginAtZero: true,
@@ -147,12 +167,18 @@
 								padding: 12,
 								borderWidth: 2,
 								borderColor: '#2A623D',
+								position: 'nearest',
+								caretSize: 0,
+								displayColors: false,
 								callbacks: {
 									title: () => '',
 									label: (context) => {
 										const value = context.raw;
 										return `${Math.round(value)} minutes`;
 									}
+								},
+								animation: {
+									duration: 0
 								}
 							},
 							title: {
