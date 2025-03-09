@@ -26,6 +26,20 @@
 			text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 		}
 
+		@media (max-width: 768px) {
+			h1 {
+				font-size: 3em;
+				margin-bottom: 10px;
+			}
+		}
+
+		@media (max-height: 600px) {
+			h1 {
+				font-size: 2.5em;
+				margin-bottom: 5px;
+			}
+		}
+
 		#chartContainer {
 			width: 95%;
 			max-width: 2000px;
@@ -85,8 +99,11 @@
 				const totals = data.houses.map(h => h.total);
 				const colors = labels.map(name => houseColors[name] || '#000000');
 
+				// Determine if we should use horizontal bars based on screen orientation
+				const isPortrait = window.innerHeight > window.innerWidth;
+				
 				chart = new Chart(ctx, {
-					type: 'bar',
+					type: 'bar',  // Always use 'bar', we'll control orientation with indexAxis
 					data: {
 						labels: labels,
 						datasets: [{
@@ -98,16 +115,17 @@
 						}]
 					},
 					options: {
+						indexAxis: isPortrait ? 'y' : 'x',  // This controls the orientation
 						responsive: true,
 						maintainAspectRatio: true,
-						aspectRatio: 2.5,
+						aspectRatio: isPortrait ? 1.2 : 2.5,
 						animation: {
-							duration: 0  // Disable all chart animations
+							duration: 0
 						},
 						hover: {
-							animationDuration: 0  // Disable hover animations
+							animationDuration: 0
 						},
-						responsiveAnimationDuration: 0,  // Disable responsive animations
+						responsiveAnimationDuration: 0,
 						elements: {
 							bar: {
 								borderWidth: 0
@@ -122,29 +140,29 @@
 							}
 						},
 						scales: {
-							y: {
+							x: {
 								beginAtZero: true,
 								ticks: {
 									color: "#3e3e3e",
 									font: {
 										family: "Harry P",
-										size: 28
-									}
-								},
-								grid: {
-									color: 'rgba(62, 62, 62, 0.1)'
-								}
-							},
-							x: {
-								ticks: {
-									color: "#3e3e3e",
-									font: {
-										family: "Harry P",
-										size: 28
+										size: window.innerWidth < 768 ? 16 : 28
 									}
 								},
 								grid: {
 									display: false
+								}
+							},
+							y: {
+								ticks: {
+									color: "#3e3e3e",
+									font: {
+										family: "Harry P",
+										size: window.innerWidth < 768 ? 16 : 28
+									}
+								},
+								grid: {
+									color: 'rgba(62, 62, 62, 0.1)'
 								}
 							}
 						},
@@ -158,15 +176,14 @@
 								bodyColor: '#3e3e3e',
 								titleFont: {
 									family: 'Harry P',
-									size: 24
+									size: window.innerWidth < 768 ? 16 : 24
 								},
 								bodyFont: {
 									family: 'Harry P',
-									size: 24
+									size: window.innerWidth < 768 ? 16 : 24
 								},
 								padding: 12,
 								borderWidth: 2,
-								borderColor: '#2A623D',
 								position: 'nearest',
 								caretSize: 0,
 								displayColors: false,
@@ -179,6 +196,14 @@
 								},
 								animation: {
 									duration: 0
+								},
+								external: (context) => {
+									const tooltipEl = context.tooltip;
+									if (tooltipEl && tooltipEl.dataPoints && tooltipEl.dataPoints.length > 0) {
+										const houseIndex = tooltipEl.dataPoints[0].dataIndex;
+										const houseName = context.chart.data.labels[houseIndex];
+										tooltipEl.options.borderColor = houseColors[houseName];
+									}
 								}
 							},
 							title: {
@@ -211,6 +236,15 @@
 			updateChart();
 			setInterval(updateChart, 60000);
 		};
+
+		// Add resize handler
+		window.addEventListener('resize', () => {
+			if (chart) {
+				chart.destroy();
+				chart = null;
+				updateChart();
+			}
+		});
 	</script>
 </head>
 
