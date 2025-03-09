@@ -150,7 +150,8 @@
 									}
 								},
 								grid: {
-									display: false
+									display: isPortrait,  // Show in portrait mode
+									color: 'rgba(62, 62, 62, 0.1)'
 								}
 							},
 							y: {
@@ -162,6 +163,7 @@
 									}
 								},
 								grid: {
+									display: !isPortrait,  // Show in landscape mode
 									color: 'rgba(62, 62, 62, 0.1)'
 								}
 							}
@@ -305,7 +307,8 @@
 										}
 									},
 									grid: {
-										display: false
+										display: isPortrait,  // Show in portrait mode
+										color: 'rgba(62, 62, 62, 0.1)'
 									}
 								},
 								y: {
@@ -317,6 +320,7 @@
 										}
 									},
 									grid: {
+										display: !isPortrait,  // Show in landscape mode
 										color: 'rgba(62, 62, 62, 0.1)'
 									}
 								}
