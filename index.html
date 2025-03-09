@@ -240,9 +240,147 @@
 		// Add resize handler
 		window.addEventListener('resize', () => {
 			if (chart) {
-				chart.destroy();
-				chart = null;
-				updateChart();
+				// Store current data
+				const currentData = chart.data.datasets[0].data;
+				const labels = chart.data.labels;
+				
+				// Check if orientation changed
+				const wasPortrait = chart.options.indexAxis === 'y';
+				const isPortrait = window.innerHeight > window.innerWidth;
+				
+				// Only destroy and recreate if orientation changed
+				if (wasPortrait !== isPortrait) {
+					chart.destroy();
+					chart = null;
+					
+					// Recreate with same data but new orientation
+					const ctx = document.getElementById('myChart').getContext('2d');
+					const colors = labels.map(name => houseColors[name] || '#000000');
+					
+					chart = new Chart(ctx, {
+						type: 'bar',
+						data: {
+							labels: labels,
+							datasets: [{
+								label: 'Minutes Read',
+								data: currentData,
+								backgroundColor: colors,
+								borderWidth: 0,
+								borderColor: 'transparent'
+							}]
+						},
+						options: {
+							indexAxis: isPortrait ? 'y' : 'x',
+							responsive: true,
+							maintainAspectRatio: true,
+							aspectRatio: isPortrait ? 1.2 : 2.5,
+							animation: {
+								duration: 0
+							},
+							hover: {
+								animationDuration: 0
+							},
+							responsiveAnimationDuration: 0,
+							elements: {
+								bar: {
+									borderWidth: 0
+								}
+							},
+							layout: {
+								padding: {
+									left: 10,
+									right: 10,
+									top: 10,
+									bottom: 10
+								}
+							},
+							scales: {
+								x: {
+									beginAtZero: true,
+									ticks: {
+										color: "#3e3e3e",
+										font: {
+											family: "Harry P",
+											size: window.innerWidth < 768 ? 16 : 28
+										}
+									},
+									grid: {
+										display: false
+									}
+								},
+								y: {
+									ticks: {
+										color: "#3e3e3e",
+										font: {
+											family: "Harry P",
+											size: window.innerWidth < 768 ? 16 : 28
+										}
+									},
+									grid: {
+										color: 'rgba(62, 62, 62, 0.1)'
+									}
+								}
+							},
+							plugins: {
+								legend: {
+									display: false
+								},
+								tooltip: {
+									backgroundColor: '#fdf6e3',
+									titleColor: '#3e3e3e',
+									bodyColor: '#3e3e3e',
+									titleFont: {
+										family: 'Harry P',
+										size: window.innerWidth < 768 ? 16 : 24
+									},
+									bodyFont: {
+										family: 'Harry P',
+										size: window.innerWidth < 768 ? 16 : 24
+									},
+									padding: 12,
+									borderWidth: 2,
+									position: 'nearest',
+									caretSize: 0,
+									displayColors: false,
+									callbacks: {
+										title: () => '',
+										label: (context) => {
+											const value = context.raw;
+											return `${Math.round(value)} minutes`;
+										}
+									},
+									animation: {
+										duration: 0
+									},
+									external: (context) => {
+										const tooltipEl = context.tooltip;
+										if (tooltipEl && tooltipEl.dataPoints && tooltipEl.dataPoints.length > 0) {
+											const houseIndex = tooltipEl.dataPoints[0].dataIndex;
+											const houseName = context.chart.data.labels[houseIndex];
+											tooltipEl.options.borderColor = houseColors[houseName];
+										}
+									}
+								},
+								title: {
+									display: true,
+									text: 'House Reading Totals',
+									color: "#3e3e3e",
+									font: {
+										size: 32,
+										family: "Harry P"
+									}
+								}
+							}
+						},
+						plugins: [bgPlugin]
+					});
+				} else {
+					// Just update font sizes and let Chart.js handle the resizing
+					chart.options.scales.x.ticks.font.size = window.innerWidth < 768 ? 16 : 28;
+					chart.options.scales.y.ticks.font.size = window.innerWidth < 768 ? 16 : 28;
+					chart.options.plugins.tooltip.bodyFont.size = window.innerWidth < 768 ? 16 : 24;
+					chart.update();
+				}
 			}
 		});
 	</script>
